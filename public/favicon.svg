@@ -1,0 +1,18 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#5E4DB4;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#6C5CE7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#B8A6FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- First chevron (left, smallest) -->
+  <path d="M8 32L16 24L8 16" stroke="#5E4DB4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Second chevron (middle) -->
+  <path d="M16 32L24 24L16 16" stroke="#6C5CE7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Third chevron (right, tallest) -->
+  <path d="M24 36L32 24L24 12" stroke="url(#gradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
