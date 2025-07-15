@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id             Int           @id @default(autoincrement())
+  email          String        @unique
+  passwordHash   String
+  role           String        @default("user")
+  isActive       Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId Int?
+}
+
+model Organization {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  revenue     Float
+  headcount   Int
+  geographies Int
+  industry    String
+  tag         String?
+  score       Int?
+  createdAt   DateTime   @default(now())
+  positions   Position[]
+  users       User[]
+}
+
+model Position {
+  id             Int          @id @default(autoincrement())
+  positionId     String
+  title          String
+  department     String
+  team           String?
+  reportingId    String
+  reportingTitle String
+  currentBand    String
+  currentSalary  Float?
+  jdText         String?
+  jdUpload       String?
+  factor1Score   Int?
+  factor2Score   Int?
+  factor3Score   Int?
+  factor4Score   Int?
+  factor5Score   Int?
+  factor6Score   Int?
+  factor7Score   Int?
+  factor8Score   Int?
+  factor9Score   Int?
+  evalScore      Int?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId Int
+}
