@@ -1,11 +1,11 @@
 import { useState } from "react";
-import axios from "axios";
 
 export default function DemoPage() {
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    companyName: "",
     companySize: "",
   });
   const [submitted, setSubmitted] = useState(false);
@@ -17,23 +17,24 @@ export default function DemoPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
-    // MVP: just alert admin
-    alert(
-      `Demo request:\n${form.firstName} ${form.lastName}\n${form.email}\nSize: ${form.companySize}`
-    );
-    setSubmitted(true);
-    setSending(false);
+
+    // Placeholder logic — normally you'd call backend and store
+    setTimeout(() => {
+      setSubmitted(true);
+      setSending(false);
+    }, 1000);
   };
 
-  if (submitted)
+  if (submitted) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-purple-50">
         <div className="bg-white p-8 rounded-xl shadow text-center">
           <h2 className="text-2xl font-bold mb-2">Thank you!</h2>
-          <p>We’ll be in touch within 24 hrs.</p>
+          <p>We’ll be in touch within 24 hours.</p>
         </div>
       </div>
     );
+  }
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen items-stretch">
@@ -44,9 +45,9 @@ export default function DemoPage() {
           Need more information before choosing EvalEdge Pro? Submit the form and we'll be in touch to:
         </p>
         <ul className="list-disc list-inside text-gray-600 space-y-1 text-sm">
+          <li>Learn about EvalEdge Pro</li>
           <li>Explore premium features</li>
           <li>Discover your ideal plan</li>
-          <li>Answer all your questions</li>
         </ul>
       </div>
 
@@ -75,32 +76,41 @@ export default function DemoPage() {
             type="email"
             value={form.email}
             onChange={handleChange}
-            placeholder="Work e-mail"
+            placeholder="Work email"
             required
             className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500"
+          />
+          <input
+            name="companyName"
+            value={form.companyName}
+            onChange={handleChange}
+            placeholder="Company name"
+            required
+            className="w-full border border-gray-300 rounded-lg p-3"
           />
           <select
             name="companySize"
             value={form.companySize}
             onChange={handleChange}
             required
-            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500"
+            className="w-full border border-gray-300 rounded-lg p-3"
           >
             <option value="" disabled>Company size</option>
             <option>1-50</option>
-            <option>51-200</option>
-            <option>201-1000</option>
-            <option>1000+</option>
+            <option>51-249</option>
+            <option>250-999</option>
+            <option>1,000-4,999</option>
+            <option>5,000+</option>
           </select>
           <button
             type="submit"
             disabled={sending}
-            className="w-full gradient-button disabled:opacity-50"
+            className="w-full bg-purple-700 text-white py-3 rounded-lg hover:bg-purple-800 disabled:opacity-50"
           >
             {sending ? "Sending…" : "Submit"}
           </button>
           <p className="text-xs text-gray-500">
-            We will process your data as stated in our Privacy Policy
+            We will process your data as stated in our Privacy Policy.
           </p>
         </form>
       </div>

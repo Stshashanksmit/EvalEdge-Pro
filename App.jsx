@@ -1,18 +1,10 @@
 import { Link } from "react-router-dom";
 
 export default function App() {
-return (
-  <>
-    <h1>TESTING NEW APP.JSX</h1>
+  return (
     <div className="bg-white text-gray-900">
-      {/* rest of your sections here */}
-    </div>
-  </>
-);
-return (
-    <div className="bg-white text-gray-900">
-      {/* Hero */}
-      <section className="text-center py-24 px-6 bg-gradient-to-b from-white to-purple-50">
+      {/* Hero Section */}
+      <section className="text-center py-24 px-6 bg-gradient-to-b from-white to-purple-50" id="hero">
         <h1 className="text-5xl md:text-6xl font-bold mb-4">
           Job Evaluation made easy.<br /> <span className="text-purple-700">EvalEdge Pro.</span>
         </h1>
@@ -20,7 +12,7 @@ return (
           EvalEdge Pro makes evaluating roles your competitive edge. Align compensation, streamline structures, and make smarter talent decisions — faster than ever.
         </p>
         <div className="space-x-4">
-          <Link to="/signup" className="bg-purple-700 text-white px-6 py-3 rounded-full shadow hover:bg-purple-800 transition">Sign up</Link>
+          <Link to="/signup" className="bg-purple-700 text-white px-6 py-3 rounded-full shadow hover:bg-purple-800 transition">Sign Up</Link>
           <Link to="/demo" className="border border-purple-700 text-purple-700 px-6 py-3 rounded-full hover:bg-purple-50 transition">Request Demo</Link>
         </div>
       </section>
@@ -42,7 +34,7 @@ return (
           <div className="flex flex-col items-center text-center">
             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-2xl font-bold mb-4">3</div>
             <p className="font-semibold mb-2">Generate Results</p>
-            <p className="text-sm text-gray-500">Generate reports, insights (over/under banded/paid), make decisions.</p>
+            <p className="text-sm text-gray-500">Generate reports, insights, and make talent decisions.</p>
           </div>
         </div>
       </section>
@@ -60,11 +52,11 @@ return (
           </div>
           <div className="p-6 rounded-xl shadow hover:shadow-lg transition">
             <h3 className="font-bold mb-2">Data-driven insights</h3>
-            <p className="text-sm text-gray-600">Visualize banding structure, identify compensation gaps, make informed decisions.</p>
+            <p className="text-sm text-gray-600">Visualize structures, identify gaps, make informed decisions.</p>
           </div>
           <div className="p-6 rounded-xl shadow hover:shadow-lg transition">
             <h3 className="font-bold mb-2">Market Benchmarking</h3>
-            <p className="text-sm text-gray-600">Access real-time, AI-powered salary data for compensation decisions.</p>
+            <p className="text-sm text-gray-600">Access real-time, AI-powered salary data for better decisions.</p>
           </div>
         </div>
       </section>

@@ -1,18 +1,27 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const res = await axios.post("http://localhost:5000/api/login", { email, password });
       setMessage(res.data.message);
+
+      // Save token and organizationId to localStorage
       localStorage.setItem("token", res.data.token);
+      if (res.data.organizationId) {
+        localStorage.setItem("organizationId", res.data.organizationId);
+      }
+
+      // Navigate to workspace using React Router
+      navigate("/workspace");
     } catch (err) {
       setMessage(err.response?.data?.error || "Login failed");
     }
@@ -29,7 +38,7 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500 transition"
+            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500"
           />
           <input
             type="password"
@@ -37,25 +46,25 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500 transition"
+            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500"
           />
           <label className="flex items-center space-x-2 text-sm">
             <input type="checkbox" required />
-            <span>
-              I accept the{" "}
-              <Link to="/terms" className="underline">Terms</Link> and{" "}
-              <Link to="/privacy" className="underline">Privacy Policy</Link>
-            </span>
+            <span>I accept the <Link to="/terms" className="underline">Terms</Link> and <Link to="/privacy" className="underline">Privacy Policy</Link></span>
           </label>
           <button
             type="submit"
-            className="w-full gradient-button"
+            className="w-full bg-purple-700 text-white py-3 rounded-lg hover:bg-purple-800 transition"
           >
             Secure Login
           </button>
         </form>
         {message && (
-          <p className={`mt-4 text-center text-sm ${message.includes("successful") ? "text-green-600" : "text-red-600"}`}>
+          <p
+            className={`mt-4 text-center text-sm ${
+              message.includes("successful") ? "text-green-600" : "text-red-600"
+            }`}
+          >
             {message}
           </p>
         )}

@@ -6,30 +6,48 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Fetch users
   const fetchUsers = async () => {
     try {
-      const { data } = await axios.get("http://localhost:5000/api/users");
-      setUsers(data);
+      const res = await axios.get("http://localhost:5000/api/users");
+      console.log("Fetched users:", res.data);
+      setUsers(res.data);
     } catch (e) {
+      console.error("Fetch error:", e);
       setError(e.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const approve = async (email) => {
-    await axios.post("http://localhost:5000/api/approve", { email });
-    fetchUsers();
+  // Approve user
+  const handleApprove = async (email) => {
+    try {
+      await axios.post("http://localhost:5000/api/admin/approve-user", {
+        email,
+        action: "approve",
+      });
+      fetchUsers();
+    } catch (e) {
+      console.error("Approve error:", e);
+    }
   };
 
-  const revoke = async (email) => {
-    await axios.post("http://localhost:5000/api/revoke", { email });
-    fetchUsers();
+  // Revoke user
+  const handleRevoke = async (email) => {
+    try {
+      await axios.post("http://localhost:5000/api/admin/approve-user", {
+        email,
+        action: "revoke",
+      });
+      fetchUsers();
+    } catch (e) {
+      console.error("Revoke error:", e);
+    }
   };
 
   useEffect(() => {
     fetchUsers();
-    console.warn("Admin page is open to all for MVP");
   }, []);
 
   if (loading) return <p className="p-6">Loading…</p>;
@@ -37,15 +55,13 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-3xl mx-auto bg-white rounded-xl shadow p-6 mt-8">
-      <h1 className="text-2xl font-bold mb-4">User Management</h1>
-      {users.length === 0 && (
-        <p className="text-gray-500">No users yet. Users will appear once they sign up or are added by admin.</p>
-      )}
+      <h1 className="text-xl font-bold mb-4">User Management</h1>
+      {users.length === 0 && <p className="text-gray-500">No users yet.</p>}
       <ul className="space-y-3">
         {users.map((u) => (
           <li
             key={u.email}
-            className="flex justify-between items-center p-3 rounded-lg border hover:shadow transition"
+            className="flex justify-between items-center p-3 rounded-lg hover:bg-gray-50"
           >
             <span className="font-medium truncate">{u.email}</span>
             <div className="flex items-center space-x-3">
@@ -60,16 +76,16 @@ export default function AdminPage() {
               </span>
               {!u.isActive && (
                 <button
-                  onClick={() => approve(u.email)}
-                  className="text-xs bg-green-600 text-white px-3 py-1 rounded-full hover:bg-green-700 transition"
+                  onClick={() => handleApprove(u.email)}
+                  className="text-xs bg-green-600 text-white px-3 py-1 rounded-full hover:bg-green-700"
                 >
                   Approve
                 </button>
               )}
               {u.isActive && (
                 <button
-                  onClick={() => revoke(u.email)}
-                  className="text-xs bg-red-600 text-white px-3 py-1 rounded-full hover:bg-red-700 transition"
+                  onClick={() => handleRevoke(u.email)}
+                  className="text-xs bg-red-600 text-white px-3 py-1 rounded-full hover:bg-red-700"
                 >
                   Revoke
                 </button>

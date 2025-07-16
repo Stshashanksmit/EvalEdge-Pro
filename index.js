@@ -13,7 +13,7 @@ const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 app.use(cors());
 app.use(bodyParser.json());
 
-// =================== User Auth ===================
+/* ============== User Auth ============== */
 
 app.post("/api/register", async (req, res) => {
   const { email, password } = req.body;
@@ -48,37 +48,52 @@ app.post("/api/login", async (req, res) => {
     if (!valid) return res.status(401).send({ error: "Invalid password" });
 
     const token = jwt.sign({ email: user.email, role: user.role }, SECRET_KEY, { expiresIn: "1h" });
-    res.send({ message: "Login successful", token });
+
+    res.send({
+      message: "Login successful",
+      token,
+      organizationId: user.organizationId || null,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send({ error: "Login failed" });
   }
 });
 
-// =================== Admin Routes ===================
+/* ============== Admin ============== */
+
+app.get("/api/users", async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: { email: true, isActive: true, role: true },
+    });
+    res.send(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: "Failed to load users" });
+  }
+});
 
 app.post("/api/admin/approve-user", async (req, res) => {
-  const { email, action } = req.body;
+  const { email, action, organizationId } = req.body;
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(404).send({ error: "User not found" });
 
-    if (action === "approve") {
-      await prisma.user.update({ where: { email }, data: { isActive: true } });
-      res.send({ message: "User approved" });
-    } else if (action === "revoke") {
-      await prisma.user.update({ where: { email }, data: { isActive: false } });
-      res.send({ message: "User access revoked" });
-    } else {
-      res.status(400).send({ error: "Invalid action" });
+    const updateData = { isActive: action === "approve" };
+    if (action === "approve" && organizationId) {
+      updateData.organizationId = parseInt(organizationId);
     }
+
+    await prisma.user.update({ where: { email }, data: updateData });
+    res.send({ message: `User ${updateData.isActive ? "approved" : "revoked"}` });
   } catch (err) {
     console.error(err);
     res.status(500).send({ error: "Admin action failed" });
   }
 });
 
-// =================== Organization Routes ===================
+/* ============== Organizations ============== */
 
 app.post("/api/organizations", async (req, res) => {
   try {
@@ -117,10 +132,10 @@ app.post("/api/organizations", async (req, res) => {
   }
 });
 
-app.get("/api/organizations/:name", async (req, res) => {
+app.get("/api/organizations/by-id/:id", async (req, res) => {
   try {
     const org = await prisma.organization.findUnique({
-      where: { name: req.params.name },
+      where: { id: parseInt(req.params.id) },
     });
 
     if (!org) return res.status(404).json({ error: "Organization not found" });
@@ -132,32 +147,17 @@ app.get("/api/organizations/:name", async (req, res) => {
   }
 });
 
-// =================== Position Routes ===================
+
+/* ============== Positions ============== */
 
 app.post("/api/positions", async (req, res) => {
   try {
     const {
-      positionId,
-      title,
-      department,
-      team,
-      reportingId,
-      reportingTitle,
-      currentBand,
-      currentSalary,
-      jdText,
-      jdUpload,
-      factor1Score,
-      factor2Score,
-      factor3Score,
-      factor4Score,
-      factor5Score,
-      factor6Score,
-      factor7Score,
-      factor8Score,
-      factor9Score,
-      evalScore,
-      organizationId,
+      positionId, title, department, team, reportingId, reportingTitle,
+      currentBand, currentSalary, jdText, jdUpload,
+      factor1Score, factor2Score, factor3Score, factor4Score, factor5Score,
+      factor6Score, factor7Score, factor8Score, factor9Score,
+      evalScore, organizationId,
     } = req.body;
 
     const newPosition = await prisma.position.create({
@@ -172,15 +172,15 @@ app.post("/api/positions", async (req, res) => {
         currentSalary: currentSalary ? parseFloat(currentSalary) : null,
         jdText,
         jdUpload,
-        factor1Score,
-        factor2Score,
-        factor3Score,
-        factor4Score,
-        factor5Score,
-        factor6Score,
-        factor7Score,
-        factor8Score,
-        factor9Score,
+        factor1Score: factor1Score ? parseInt(factor1Score) : null,
+        factor2Score: factor2Score ? parseInt(factor2Score) : null,
+        factor3Score: factor3Score ? parseInt(factor3Score) : null,
+        factor4Score: factor4Score ? parseInt(factor4Score) : null,
+        factor5Score: factor5Score ? parseInt(factor5Score) : null,
+        factor6Score: factor6Score ? parseInt(factor6Score) : null,
+        factor7Score: factor7Score ? parseInt(factor7Score) : null,
+        factor8Score: factor8Score ? parseInt(factor8Score) : null,
+        factor9Score: factor9Score ? parseInt(factor9Score) : null,
         evalScore,
         organizationId: parseInt(organizationId),
       },
@@ -206,8 +206,7 @@ app.get("/api/positions/:orgId", async (req, res) => {
   }
 });
 
-// =================== Server ===================
-
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
 });
