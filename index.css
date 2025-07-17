@@ -1,3 +1,4 @@
+/* Pitch.com reset and style foundation */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
@@ -25,26 +26,15 @@ body {
   color: var(--text-dark);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  transition: color 0.2s ease, background-color 0.2s ease;
 }
 
 a {
-  color: inherit;
+  color: var(--purple-mid);
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
-button, input, select, textarea {
-  font-family: inherit;
-}
-
-button:focus, input:focus, select:focus, textarea:focus {
-  outline: none;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-img, svg {
-  display: block;
+a:hover {
+  color: var(--purple-deep);
 }

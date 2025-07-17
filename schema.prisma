@@ -3,19 +3,21 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
   id             Int           @id @default(autoincrement())
+  name           String?
   email          String        @unique
-  passwordHash   String
-  role           String        @default("user")
+  passwordHash   String        @default("")
+  role           String        @default("viewer")
   isActive       Boolean       @default(false)
   createdAt      DateTime      @default(now())
-  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   organizationId Int?
+  auditLogs      AuditLog[]
 }
 
 model Organization {
@@ -30,31 +32,72 @@ model Organization {
   createdAt   DateTime   @default(now())
   positions   Position[]
   users       User[]
+  bands       Band[]
+  auditLogs   AuditLog[]
 }
 
 model Position {
+  id                 Int          @id @default(autoincrement())
+  positionId         String
+  title              String
+  department         String
+  team               String?
+  reportingId        String
+  reportingTitle     String
+  currentBand        String?
+  currentSalary      Float?
+  jdText             String?
+  jdUpload           String?
+  factor1Score       Int?
+  factor2Score       Int?
+  factor3Score       Int?
+  factor4Score       Int?
+  factor5Score       Int?
+  factor6Score       Int?
+  factor7Score       Int?
+  factor8Score       Int?
+  factor9Score       Int?
+  evalScore          Float?
+  suggestedBand      String?
+  marketMedianSalary Float?
+  bandPositioning    String?
+  salaryPositioning  String?
+  comments           String?
+  createdAt          DateTime     @default(now())
+  organization       Organization @relation(fields: [organizationId], references: [id])
+  organizationId     Int
+
+  @@unique([organizationId, positionId])
+}
+
+model Band {
   id             Int          @id @default(autoincrement())
-  positionId     String
-  title          String
-  department     String
-  team           String?
-  reportingId    String
-  reportingTitle String
-  currentBand    String
-  currentSalary  Float?
-  jdText         String?
-  jdUpload       String?
-  factor1Score   Int?
-  factor2Score   Int?
-  factor3Score   Int?
-  factor4Score   Int?
-  factor5Score   Int?
-  factor6Score   Int?
-  factor7Score   Int?
-  factor8Score   Int?
-  factor9Score   Int?
-  evalScore      Int?
-  createdAt      DateTime     @default(now())
+  name           String
+  minScore       Float
+  maxScore       Float
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId Int
+
+  @@unique([organizationId, name])
+}
+
+model AuditLog {
+  id             Int          @id @default(autoincrement())
+  action         String
+  details        String?
+  ip             String?
+  createdAt      DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id])
+  userId         Int
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId Int
+}
+
+model DemoRequest {
+  id          Int      @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  workEmail   String
+  companySize String
+  createdAt   DateTime @default(now())
 }

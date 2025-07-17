@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 
 const SECRET_KEY = process.env.JWT_SECRET || "supersecretkey";
 
-/* ---------------- User Registration ---------------- */
+// Register
 app.post("/api/register", async (req, res) => {
   const { email, password } = req.body;
   const existing = await prisma.user.findUnique({ where: { email } });
@@ -26,7 +26,7 @@ app.post("/api/register", async (req, res) => {
   res.send({ message: "Registration successful. Await admin approval." });
 });
 
-/* ---------------- User Login ---------------- */
+// Login
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
   const user = await prisma.user.findUnique({ where: { email } });
@@ -40,13 +40,13 @@ app.post("/api/login", async (req, res) => {
   res.send({ message: "Login successful", token });
 });
 
-/* ---------------- List All Users ---------------- */
+// List all users
 app.get("/api/users", async (req, res) => {
   const users = await prisma.user.findMany({ select: { email: true, isActive: true, role: true } });
   res.send(users);
 });
 
-/* ---------------- Approve User ---------------- */
+// Approve user
 app.post("/api/approve", async (req, res) => {
   const { email } = req.body;
   const user = await prisma.user.findUnique({ where: { email } });
@@ -56,7 +56,7 @@ app.post("/api/approve", async (req, res) => {
   res.send({ message: `User ${email} approved.` });
 });
 
-/* ---------------- Revoke User ---------------- */
+// Revoke user
 app.post("/api/revoke", async (req, res) => {
   const { email } = req.body;
   const user = await prisma.user.findUnique({ where: { email } });
@@ -66,6 +66,5 @@ app.post("/api/revoke", async (req, res) => {
   res.send({ message: `User ${email} access revoked.` });
 });
 
-/* ---------------- Server Start ---------------- */
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

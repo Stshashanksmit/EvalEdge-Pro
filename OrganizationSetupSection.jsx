@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 export default function OrganizationSetupSection({ setOrgScore, setOrgId }) {
@@ -9,55 +9,49 @@ export default function OrganizationSetupSection({ setOrgScore, setOrgId }) {
     geographies: "",
     industry: "",
     customIndustry: "",
-    score: "",
+    score: null,
     tag: "",
   });
-  const [showOther, setShowOther] = useState(false);
+
+  const [showOtherInput, setShowOtherInput] = useState(false);
   const [saving, setSaving] = useState(false);
-  const saveTimeout = useRef(null);
 
+  const ORG_NAME = "MyOrg"; // hard-coded for MVP single-tenant
+
+  /* ---------- fetch existing org ---------- */
   useEffect(() => {
-    const storedOrgId = localStorage.getItem("organizationId");
-    if (storedOrgId) {
-      axios
-        .get(`http://localhost:5000/api/organizations/by-id/${storedOrgId}`)
-        .then((res) => {
-          const data = res.data;
-          setForm({
-            name: data.name,
-            revenue: data.revenue?.toString() || "",
-            headcount: data.headcount?.toString() || "",
-            geographies: data.geographies?.toString() || "",
-            industry: data.industry,
-            customIndustry: "",
-            score: data.score,
-            tag: data.tag,
-          });
-          setOrgScore(data.score);
-          setOrgId(data.id);
-        })
-        .catch(() => {
-          console.log("No org found");
+    async function fetchOrg() {
+      try {
+        const { data } = await axios.get(`http://localhost:5000/api/organizations/${ORG_NAME}`);
+        setForm({
+          ...data,
+          revenue: data.revenue?.toString() ?? "",
+          headcount: data.headcount?.toString() ?? "",
+          geographies: data.geographies?.toString() ?? "",
+          score: data.score,
+          tag: data.tag,
         });
+        setOrgScore(data.score);
+        setOrgId(data.id);
+        if (data.industry === "Other") setShowOtherInput(true);
+      } catch {
+        /* no org yet */
+      }
     }
-  }, []);
+    fetchOrg();
+  }, [setOrgScore, setOrgId]);
 
-  useEffect(() => {
-    return () => {
-      if (saveTimeout.current) clearTimeout(saveTimeout.current);
-    };
-  }, []);
-
+  /* ---------- on change ---------- */
   const handleChange = (e) => {
     const { name, value } = e.target;
     const updated = { ...form, [name]: value };
 
     if (name === "industry") {
-      setShowOther(value === "Other");
+      setShowOtherInput(value === "Other");
       if (value !== "Other") updated.customIndustry = "";
     }
 
-    // Calculate points
+    /* PRD points table */
     const rev = parseFloat(updated.revenue) || 0;
     const hc = parseInt(updated.headcount) || 0;
     const geo = parseInt(updated.geographies) || 0;
@@ -77,157 +71,144 @@ export default function OrganizationSetupSection({ setOrgScore, setOrgId }) {
 
     updated.score = totalScore;
     updated.tag = tag;
-
     setForm(updated);
     setOrgScore(totalScore);
-
-    if (saveTimeout.current) clearTimeout(saveTimeout.current);
-    saveTimeout.current = setTimeout(() => {
-      handleSave(updated);
-    }, 1000);
   };
 
-  const handleSave = async (dataToSave = form) => {
-    if (!dataToSave.name || !dataToSave.revenue || !dataToSave.headcount || !dataToSave.geographies || !dataToSave.industry) {
+  /* ---------- save ---------- */
+  const handleSave = async () => {
+    if (!form.name || !form.revenue || !form.headcount || !form.geographies || !form.industry) {
+      alert("Please fill all required fields.");
       return;
     }
     setSaving(true);
     try {
-      const finalIndustry = dataToSave.industry === "Other" ? dataToSave.customIndustry || "Other" : dataToSave.industry;
+      let finalIndustry = form.industry;
+      if (form.industry === "Other") finalIndustry = form.customIndustry || "Other";
 
       const payload = {
-        name: dataToSave.name,
-        revenue: parseFloat(dataToSave.revenue),
-        headcount: parseInt(dataToSave.headcount),
-        geographies: parseInt(dataToSave.geographies),
+        name: form.name,
+        revenue: parseFloat(form.revenue),
+        headcount: parseInt(form.headcount),
+        geographies: parseInt(form.geographies),
         industry: finalIndustry,
-        score: dataToSave.score,
-        tag: dataToSave.tag,
+        score: form.score,
+        tag: form.tag,
       };
 
-      const res = await axios.post("http://localhost:5000/api/organizations", payload);
-
-      if (res.data?.id) {
-        setOrgId(res.data.id);
-        localStorage.setItem("organizationId", res.data.id);
-      }
+      const { data } = await axios.post("http://localhost:5000/api/organizations", payload);
+      setOrgId(data.id);
+      alert("Organization saved!");
     } catch (e) {
-      console.error("Auto-save failed:", e);
+      alert("Error saving: " + e.message);
     } finally {
       setSaving(false);
     }
   };
 
+  /* ---------- industries ---------- */
+  const industries = [
+    "Professional Services",
+    "Tech / Digital Products",
+    "Manufacturing & Engineering",
+    "Logistics & Supply Chain",
+    "Banking & Financial Services",
+    "Healthcare & Life Sciences",
+    "Public Sector & Government",
+    "Education & Non-profit",
+    "Retail & Consumer Services",
+    "Energy & Utilities",
+    "Other",
+  ];
+
   return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Organization Name</label>
+    <div className="max-w-xl mx-auto bg-white rounded-xl shadow p-8 mt-8">
+      <h1 className="text-2xl font-bold mb-6">Organization Setup</h1>
+
+      <div className="space-y-4">
         <input
           name="name"
           placeholder="Organization Name"
           value={form.name}
           onChange={handleChange}
-          className="w-full border rounded p-3"
+          className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-purple-500 transition"
           required
         />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Revenue (Mn USD)</label>
         <input
           name="revenue"
           type="number"
-          placeholder="Revenue"
+          placeholder="Revenue (Mn USD)"
           value={form.revenue}
           onChange={handleChange}
-          className="w-full border rounded p-3"
+          className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-purple-500 transition"
           required
         />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Total Headcount</label>
         <input
           name="headcount"
           type="number"
-          placeholder="Headcount"
+          placeholder="Total Headcount"
           value={form.headcount}
           onChange={handleChange}
-          className="w-full border rounded p-3"
+          className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-purple-500 transition"
           required
         />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Number of Countries</label>
         <input
           name="geographies"
           type="number"
-          placeholder="Countries"
+          placeholder="Number of Countries"
           value={form.geographies}
           onChange={handleChange}
-          className="w-full border rounded p-3"
+          className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-purple-500 transition"
           required
         />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+
         <select
           name="industry"
           value={form.industry}
           onChange={handleChange}
-          className="w-full border rounded p-3"
+          className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-purple-500 transition"
           required
         >
           <option value="">Select Industry</option>
-          <option>Professional Services</option>
-          <option>Tech / Digital Products</option>
-          <option>Manufacturing & Engineering</option>
-          <option>Logistics & Supply Chain</option>
-          <option>Banking & Financial Services</option>
-          <option>Healthcare & Life Sciences</option>
-          <option>Public Sector & Government</option>
-          <option>Education & Non-profit</option>
-          <option>Retail & Consumer Services</option>
-          <option>Energy & Utilities</option>
-          <option>Other</option>
+          {industries.map((i) => (
+            <option key={i} value={i}>{i}</option>
+          ))}
         </select>
-      </div>
-      {showOther && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Specify Industry</label>
+
+        {showOtherInput && (
           <input
             name="customIndustry"
             placeholder="Specify Industry"
             value={form.customIndustry}
             onChange={handleChange}
-            className="w-full border rounded p-3"
+            className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-purple-500 transition"
             required
           />
-        </div>
-      )}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Org Score</label>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
           <input
             value={form.score ?? ""}
             disabled
-            className="w-full border rounded p-3 bg-gray-100 text-gray-700"
+            placeholder="Org Score"
+            className="w-full border rounded-lg p-3 bg-gray-100 text-gray-700"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Org Tag</label>
           <input
             value={form.tag}
             disabled
-            className="w-full border rounded p-3 bg-gray-100 text-gray-700"
+            placeholder="Org Tag"
+            className="w-full border rounded-lg p-3 bg-gray-100 text-gray-700"
           />
         </div>
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full gradient-button disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Save Organization"}
+        </button>
       </div>
-      <button
-        onClick={() => handleSave()}
-        disabled={saving}
-        className="w-full bg-purple-700 text-white py-3 rounded hover:bg-purple-800 disabled:opacity-50"
-      >
-        {saving ? "Saving…" : "Save Organization"}
-      </button>
     </div>
   );
 }

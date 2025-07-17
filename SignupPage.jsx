@@ -1,81 +1,89 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-export default function SignupPage() {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [accept, setAccept] = useState(false);
-  const [message, setMessage] = useState("");
+const SignupPage = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [organizationName, setOrganizationName] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    if (!accept) {
-      setMessage("Please accept Terms and Privacy Policy.");
-      return;
-    }
-
-    // Placeholder: Here you'd check invite or reCAPTCHA
+    setError('');
+    setSuccess('');
     try {
-      const res = await axios.post("http://localhost:5000/api/register", { email, password });
-      setMessage(res.data.message);
+      const res = await axios.post('http://localhost:5000/api/register', {
+        name,
+        email,
+        password,
+        organizationName,
+      });
+      setSuccess(res.data.message);
+      setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      setMessage(err.response?.data?.error || "Signup failed");
+      setError(err.response?.data?.error || 'Signup failed. Please try again.');
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#f9f9fb] px-6">
-      <h1 className="text-4xl font-bold text-[#4B2E83] mb-6">Sign up for EvalEdge Pro</h1>
-      <form onSubmit={handleSignup} className="flex flex-col gap-4 w-full max-w-sm">
-        <input
-          type="text"
-          placeholder="Full Name"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          className="border p-3 rounded"
-          required
-        />
-        <input
-          type="email"
-          placeholder="Work email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="border p-3 rounded"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border p-3 rounded"
-          required
-        />
-        <label className="flex items-center space-x-2 text-sm">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#f9f9fb] px-4">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-md">
+        <h1 className="text-3xl font-bold text-center text-purple-700 mb-6">Create your account</h1>
+        <form onSubmit={handleSignup} className="space-y-4">
           <input
-            type="checkbox"
-            checked={accept}
-            onChange={(e) => setAccept(e.target.checked)}
+            type="text"
+            placeholder="Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500 transition"
           />
-          <span>
-            I accept the{" "}
-            <a href="#" className="underline">Terms</a> and{" "}
-            <a href="#" className="underline">Privacy Policy</a>
-          </span>
-        </label>
-
-        {/* Placeholder for reCAPTCHA */}
-        <div className="text-gray-500 text-xs mb-2">[reCAPTCHA placeholder]</div>
-
-        <button
-          type="submit"
-          className="bg-[#4B2E83] text-white px-6 py-3 rounded-full hover:bg-purple-900 transition"
-        >
-          Sign Up
-        </button>
-      </form>
-      {message && <p className="mt-4 text-center text-green-600">{message}</p>}
+          <input
+            type="email"
+            placeholder="Work e-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500 transition"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500 transition"
+          />
+          <input
+            type="text"
+            placeholder="Organization Name"
+            value={organizationName}
+            onChange={(e) => setOrganizationName(e.target.value)}
+            required
+            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500 transition"
+          />
+          <button
+            type="submit"
+            className="w-full bg-purple-700 text-white py-3 rounded-lg font-semibold hover:bg-purple-800 transition-colors"
+          >
+            Sign Up
+          </button>
+        </form>
+        {error && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
+        {success && <p className="mt-4 text-center text-sm text-green-600">{success}</p>}
+        <p className="text-center mt-4 text-sm text-gray-600">
+          Already have an account?{' '}
+          <Link to="/login" className="font-semibold text-purple-700 hover:underline">
+            Log in
+          </Link>
+        </p>
+      </div>
     </div>
   );
-}
+};
+
+export default SignupPage;
